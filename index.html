@@ -4,3 +4,251 @@
   <meta charset="UTF-8">
   <title>Malla Curricular - Artes Escénicas</title>
   <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 1em;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2e4053;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1em;
+      margin-top: 2em;
+    }
+    .semester {
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 1em;
+    }
+    .semester h2 {
+      text-align: center;
+      font-size: 1.1em;
+      color: #1a5276;
+    }
+    .subject {
+      margin: 0.5em 0;
+      padding: 0.5em;
+      border-radius: 8px;
+      background-color: #d6eaf8;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      position: relative;
+    }
+    .subject.locked {
+      background-color: #f8f9f9;
+      color: #aaa;
+      cursor: not-allowed;
+    }
+    .subject.locked::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 0.3em 0.6em;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .subject.locked:hover::after {
+      opacity: 1;
+    }
+    .subject.completed {
+      background-color: #58d68d !important;
+      color: #155724;
+      font-weight: bold;
+      position: relative;
+      padding-left: 2em;
+      opacity: 0.9;
+      text-decoration: line-through;
+    }
+    .subject.completed::before {
+      content: "✓";
+      position: absolute;
+      left: 0.6em;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #155724;
+      font-size: 1em;
+    }
+    .subject.current {
+      background-color: #f9e79f !important;
+      color: #7d6608;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Curricular - Licenciatura en Artes Escénicas</h1>
+  <div class="grid" id="curriculum"></div>
+
+  <script>
+    const semesters = {
+      "Primer Semestre": [
+        "Actuación Juego",
+        "Danza Rito",
+        "Dinámica Del Cuerpo",
+        "Fundamentación Vocal Para La Escena",
+        "Ensamble 1",
+        "Historia De Las Artes Escénicas",
+        "Educación y Pedagogía 1",
+        "Constitución"
+      ],
+      "Segundo Semestre": [
+        { name: "Actuación Drama", requires: ["Actuación Juego"] },
+        { name: "Danza Técnica Clásica", requires: ["Danza Rito"] },
+        { name: "Cuerpo y Espacio", requires: ["Dinámica Del Cuerpo"] },
+        { name: "Coro Para Las Artes Escénicas", requires: ["Fundamentación Vocal Para La Escena"] },
+        { name: "Ensamble 2", requires: ["Ensamble 1"] },
+        "Vestuario Escénico",
+        "Historia De La Danza y El Teatro Clásico",
+        "Educación y Pedagogía 2",
+        "Razonamiento Lógico 1"
+      ],
+      "Tercer Semestre": [
+        { name: "Actuación Personaje", requires: ["Actuación Drama"] },
+        { name: "Danza Tradicional", requires: ["Danza Técnica Clásica"] },
+        { name: "Técnicas De Combate", requires: ["Cuerpo y Espacio"] },
+        { name: "La Voz y El Personaje", requires: ["Coro Para Las Artes Escénicas"] },
+        { name: "Ensamble 3", requires: ["Ensamble 2"] },
+        { name: "Escenografía", requires: ["Vestuario Escénico"] },
+        "Danza y Teatro Siglo XV al XIX",
+        "Teoría y Practica Curricular",
+        { name: "Razonamiento Lógico 2", requires: ["Razonamiento Lógico 1"] }
+      ],
+      "Cuarto Semestre": [
+        { name: "Actuación Dramaturgia del Actor", requires: ["Actuación Personaje"] },
+        { name: "Danza Moderna", requires: ["Danza Tradicional"] },
+        { name: "Dramaturgia Moderna Del Cuerpo", requires: ["Técnicas De Combate"] },
+        { name: "Interpretación Vocal Para La Escena", requires: ["La Voz y El Personaje"] },
+        { name: "Ensamble 4", requires: ["Ensamble 3"] },
+        { name: "Maquillaje Escénico", requires: ["Escenografía"] },
+        "Danza y Teatro Contemporáneo",
+        "Culturas y Aprendizajes",
+        { name: "Razonamiento Lógico 3", requires: ["Razonamiento Lógico 2"] }
+      ],
+      "Quinto Semestre": [
+        { name: "Actuación Para Montaje", requires: ["Actuación Dramaturgia del Actor"] },
+        { name: "Danza Para Montaje", requires: ["Danza Moderna"] },
+        { name: "Dramaturgia Activa Del Cuerpo", requires: ["Dramaturgia Moderna Del Cuerpo"] },
+        { name: "Voz Para Montaje", requires: ["Interpretación Vocal Para La Escena"] },
+        { name: "Montaje", requires: ["Ensamble 4"] },
+        { name: "Iluminación Para La Escena", requires: ["Maquillaje Escénico"] },
+        "Danza y Teatro Nacional y Latinoamericano",
+        "Evaluación De Los Procesos",
+        "Textos y Discursos 1"
+      ],
+      "Sexto Semestre": [
+        { name: "Dramaturgia 1", requires: ["Montaje"] },
+        { name: "Intensificación 1", requires: ["Montaje"] },
+        "Conocimientos Pedagogicos",
+        { name: "Didactica En Interpretacion Escenica", requires: ["Montaje"] },
+        { name: "Proyeccion", requires: ["Montaje"] },
+        "Textos y Discursos 2"
+      ],
+      "Séptimo Semestre": [
+        { name: "Dramaturgia 2", requires: ["Dramaturgia 1"] },
+        { name: "Intensificación 2", requires: ["Intensificación 1"] },
+        "Roles y Desempeños Del Maestro",
+        { name: "Didáctica En Puesta En Escena y Creación", requires: ["Didactica En Interpretacion Escenica"] },
+        { name: "Seminario De Practica Profesional E Investigativa", requires: ["Didactica En Interpretacion Escenica"] },
+        { name: "Textos y Discursos 3", requires: ["Textos y Discursos 2"] },
+        "Electiva 1"
+      ],
+      "Octavo Semestre": [
+        { name: "Intensificación 3", requires: ["Intensificación 2"] },
+        { name: "Didáctica Del Pensamiento Escénico", requires: ["Didáctica En Puesta En Escena y Creación"] },
+        "Ingles",
+        "Electiva 2"
+      ],
+      "Noveno Semestre": [
+        { name: "Practica Pedagógica 1", requires: ["Intensificación 3"] },
+        "Informática",
+        "Electiva 3"
+      ],
+      "Décimo Semestre": [
+        {
+          name: "Practica Pedagógica 2",
+          requires: ["Practica Pedagógica 1"]
+        },
+        "Electiva 4",
+        "Opcional"
+      ]
+    };
+
+    let approved = new Set(JSON.parse(localStorage.getItem("approvedSubjects") || "[]"));
+    let current = new Set(JSON.parse(localStorage.getItem("currentSubjects") || "[]"));
+
+    function saveProgress() {
+      localStorage.setItem("approvedSubjects", JSON.stringify([...approved]));
+      localStorage.setItem("currentSubjects", JSON.stringify([...current]));
+    }
+
+    function renderCurriculum() {
+      const curriculumDiv = document.getElementById("curriculum");
+      curriculumDiv.innerHTML = "";
+
+      for (const [semester, subjects] of Object.entries(semesters)) {
+        const col = document.createElement("div");
+        col.className = "semester";
+        const title = document.createElement("h2");
+        title.textContent = semester;
+        col.appendChild(title);
+
+        subjects.forEach(subject => {
+          const name = typeof subject === 'string' ? subject : subject.name;
+          const requirements = typeof subject === 'string' ? [] : subject.requires || [];
+          const unmet = requirements.filter(req => !approved.has(req));
+          const isLocked = unmet.length > 0 && !approved.has(name);
+
+          const div = document.createElement("div");
+          div.className = "subject";
+          div.textContent = name;
+
+          if (isLocked) {
+            div.classList.add("locked");
+            div.dataset.tooltip = Requiere: ${unmet.join(", ")};
+          }
+
+          if (approved.has(name)) {
+            div.classList.add("completed");
+          } else if (current.has(name)) {
+            div.classList.add("current");
+          }
+
+          div.addEventListener("click", () => {
+            if (isLocked) return;
+            if (!current.has(name) && !approved.has(name)) {
+              current.add(name); // sin estado → cursando
+            } else if (current.has(name)) {
+              current.delete(name); // cursando → aprobado
+              approved.add(name);
+            } else if (approved.has(name)) {
+              approved.delete(name); // aprobado → sin estado
+            }
+            saveProgress();
+            renderCurriculum();
+          });
+
+          col.appendChild(div);
+        });
+
+        curriculumDiv.appendChild(col);
+      }
+    }
+
+    renderCurriculum();
+  </script>
+</body>
+</html>
